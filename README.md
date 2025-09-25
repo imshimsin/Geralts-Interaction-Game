@@ -1,8 +1,15 @@
 # A Witcher's Story – Gesture & Emotion Driven Interactive Game
 
 ## Overview
-*A Witcher's Story* is an interactive storytelling game inspired by **The Witcher** universe. Unlike traditional games controlled by mouse or keyboard, this project allows the player to shape the narrative using **hand gestures** and **facial expressions**.  
-The story is written in `.twee` format and dynamically adapts to the player's actions, creating a unique narrative experience each time. This version works only on Windows. I will add soon support for Lunix and Raspberry pi machines.
+## Overview
+*A Witcher's Story* is not a traditional video game. It is an **interactive storytelling experience** inspired by *The Witcher* universe, where the player becomes part of the narrative itself. Instead of clicking buttons or pressing keys, the story unfolds through **natural human interaction**: hand gestures and facial expressions.
+
+The project demonstrates how **event-driven logic** can be applied to digital narratives. Each gesture or emotion acts as an event that drives the story forward, allowing the player to shape the outcome in real time. A simple smile, a look of surprise, or a thumbs up can completely change the path of the narrative.
+
+Behind the scenes, the system combines **computer vision and web technologies**. Hand gestures are recognized with Mediapipe and OpenCV, while emotions are detected with FER. The story is written in `.twee` format and rendered dynamically with Flask, HTML, CSS, and JavaScript. This makes the game lightweight, flexible, and easy to expand with new narrative branches.
+
+The project was also designed to run on **Raspberry Pi**, proving that immersive and creative interactions can be achieved even on low-cost hardware. This flexibility makes it suitable not only as a proof of concept for a thesis, but also as a foundation for future applications in education, therapy, or entertainment.
+
 
 Two main game versions are included:
 - **Hand Gesture Game**: Controlled by recognized gestures (thumbs up, thumbs down, peace, index finger).
