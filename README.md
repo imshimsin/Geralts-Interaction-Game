@@ -9,7 +9,8 @@ Two main game versions are included:
 - **Emotion Game**: Controlled by facial expressions (happiness, sadness, surprise, etc.).
 
 Both versions follow an **event-driven logic**, where each detected gesture or emotion is treated as an event that drives the story forward.
-![Uploading image.png…]()
+
+<img width="940" height="468" alt="image" src="https://github.com/user-attachments/assets/dccffb44-d9e5-4564-a13e-d603329be04a" />
 
 
 ## Features
