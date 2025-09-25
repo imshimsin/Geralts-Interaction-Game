@@ -9,6 +9,8 @@ Two main game versions are included:
 - **Emotion Game**: Controlled by facial expressions (happiness, sadness, surprise, etc.).
 
 Both versions follow an **event-driven logic**, where each detected gesture or emotion is treated as an event that drives the story forward.
+![Uploading image.png…]()
+
 
 ## Features
 - Real-time **hand gesture recognition** using Mediapipe and OpenCV.
