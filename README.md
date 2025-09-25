@@ -1,6 +1,6 @@
 # A Witcher's Story – Gesture & Emotion Driven Interactive Game
 
-## Overview
+
 ## Overview
 *A Witcher's Story* is not a traditional video game. It is an **interactive storytelling experience** inspired by *The Witcher* universe, where the player becomes part of the narrative itself. Instead of clicking buttons or pressing keys, the story unfolds through **natural human interaction**: hand gestures and facial expressions.
 
