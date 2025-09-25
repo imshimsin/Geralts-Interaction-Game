@@ -56,3 +56,18 @@ python witcher_story_app_hands.py
 python Witcher_emotion_game.py
 ```
 2. A window will display the API address where the emotion API is running.
+
+
+## Project Structure
+
+```php
+├── A_Witchers_Story.twee        # The interactive story script
+├── witcher_story_app_hands.py   # Hand gesture game frontend
+├── Witcher_emotion_game.py      # Emotion recognition game
+├── gesture_recognition_with_api.py
+├── emotion_detection.py
+├── new_api.py
+├── run_both.py
+├── static/                      # CSS, JS, images
+└── templates/                   # HTML templates
+```
