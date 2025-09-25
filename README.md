@@ -1,7 +1,6 @@
 # Geralts-Interaction-Game
 This thesis develops an interactive storytelling game inspired by the Witcher, where players shape the narrative through gestures and emotions, using technologies such as Flask, OpenCV, Mediapipe, and FER for natural interaction.
 
-# A Witcher's Story – Gesture & Emotion Driven Interactive Game
 
 ## Overview
 *A Witcher's Story* is an interactive storytelling game inspired by **The Witcher** universe. Unlike traditional games controlled by mouse or keyboard, this project allows the player to shape the narrative using **hand gestures** and **facial expressions**.  
