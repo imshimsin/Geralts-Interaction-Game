@@ -32,3 +32,38 @@ On Raspberry Pi:
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install libatlas-base-dev
+
+How to Run
+Gesture Game
+
+Run the gesture recognition API and camera handler:
+
+python run_both.py
+
+
+Start the game application:
+
+python witcher_story_app_hands.py
+
+
+When prompted, enter the API address shown by run_both.py.
+
+Emotion Game
+
+Run the emotion-based game directly:
+
+python Witcher_emotion_game.py
+
+
+A window will display the API address where the emotion API is running.
+
+Project Structure
+├── A_Witchers_Story.twee        # The interactive story script
+├── witcher_story_app_hands.py   # Hand gesture game frontend
+├── Witcher_emotion_game.py      # Emotion recognition game
+├── gesture_recognition_with_api.py
+├── emotion_detection.py
+├── new_api.py
+├── run_both.py
+├── static/                      # CSS, JS, images
+└── templates/                   # HTML templates
