@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>A Witcher's Story</title>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #b6b943;
+            --dark-bg: #1a1a1a;
+            --text-light: #e0e0e0;
+            --panel-bg: rgba(46, 46, 46, 0.9);
+        }
+
+        body {
+            font-family: 'Cinzel', regular;
+            background: linear-gradient(135deg, #2c1810, #1a1a1a);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Mason Serif', Georgia, serif;
+}
+
+
+
+
+/* Background image container */
+#background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1; /* ensure it stays behind everything */
+}
+
+/* Background image */
+#background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(0.6); /* optional to darken the image */
+  pointer-events: none; /* allow clicks through the background */
+}
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--panel-bg);
+            border-radius: 10px;
+            border: 2px solid var(--primary-gold);
+        }
+
+        .title {
+            color: var(--primary-gold);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(182, 185, 67, 0.5);
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #d1d35f;
+            transform: translateY(-2px);
+        }
+
+        .story-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .story-panel {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--primary-gold);
+        }
+
+        .story-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+
+
+        .options-frame {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--primary-gold);
+            margin-bottom: 20px;
+        }
+
+
+        .options-title {
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #3d2914, #2a1a0f);
+            color: var(--text-light);
+            border: 2px solid var(--primary-gold);
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-button:hover {
+            background: linear-gradient(135deg, #4d3318, #3a2412);
+            border-color: #d1d35f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(182, 185, 67, 0.2);
+        }
+
+        .option-button:active {
+            transform: translateY(0);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .story-container {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 2rem;
+            }
+        }
+
+        .ending-notice {
+            background: linear-gradient(135deg, #3d2914, #2a1a0f);
+            border: 2px solid var(--primary-gold);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-style: italic;
+            color: var(--primary-gold);
+        }
+
+.api-status.connected {
+    color: #8fff8f;
+    animation: glow-green 1.5s infinite alternate;
+}
+.api-status.disconnected {
+    color: #ff8f8f;
+    animation: glow-red 1.5s infinite alternate;
+}
+@keyframes glow-green {
+    from { text-shadow: 0 0 5px #6f6, 0 0 10px #6f6; }
+    to   { text-shadow: 0 0 10px #9f9, 0 0 20px #9f9; }
+}
+@keyframes glow-red {
+    from { text-shadow: 0 0 5px #f66, 0 0 10px #f66; }
+    to   { text-shadow: 0 0 10px #f99, 0 0 20px #f99; }
+}
+</style>
+</head>
+<body>
+<div id="background">
+<img alt="Background" src="/static/images/Gerald_background_image.png"/>
+
+
+</div>
+<div class="container">
+<header class="header">
+<h1 class="title">A Witcher's Story</h1>
+<p class="subtitle">The Merchant of Mirrors</p>
+<div>
+<button class="btn" id="start-button">🐺 Begin Your Journey</button>
+<button class="btn" id="restart-button">🔄 Restart Story</button>
+</div>
+</header>
+<div class="story-container">
+<div class="story-panel">
+<div class="story-text" id="story-text">
+                    Click "Begin Your Journey" to start your adventure as Geralt of Rivia...
+                </div>
+</div>
+<div class="story-panel gesture-guide">
+    <h3>🎭 Emotion Guide</h3>
+    <ul>
+        <li>😊 <strong>Happy</strong> → Select first option</li>
+        <li>😢 <strong>Sad</strong> → Select second option</li>
+        <li>😠 <strong>Angry</strong> → Select third option</li>
+    </ul>
+</div>
+</div>
+<div class="options-frame" id="options-frame">
+<h3 class="options-title">Choose Your Path</h3>
+<div id="options-container">
+<p style="text-align: center; opacity: 0.7;">Your choices will shape Geralt's destiny...</p>
+</div>
+</div>
+</div>
+<div id="emotion-feedback" style="margin-top: 20px;text-align: center;font-size: 1.2rem;color: var(--primary-gold);">
+                    Awaiting emotion input...
+</div>
+
+<div id="apiStatus">🟢 Witcher Senses Active – API Connected</div>
+</div>
+</div>
+
+<audio autoplay="" id="bgMusic" loop="">
+<source src="/audio/The Witcher 3_ Wild Hunt - Geralt of Rivia Extended.mp3" type="audio/mpeg"/>
+  Your browser does not support the audio element.
+</audio>
+
+<script>
+        // Current story state
+        let currentPassage = 'Start';
+        let lastPassageName = 'Start';
+
+        // Complete story data from the Twine file
+        const storyData = {
+            'Start': {
+                text: `The wind howls across the desolate Velen moorlands. Clouds churn like a boiling stew above, and the stench of rot clings to the air.
+
+You are Geralt of Rivia — Witcher, monster slayer, part-time philosopher, full-time magnet for otherworldly trouble.
+
+You're astride Roach, who — for once — isn't standing on a rooftop. A strange rumor has reached you: the Merchant of Mirrors has returned.
+
+"Great," you mutter. "And here I thought today would just involve drowners."`,
+                options: [
+                    { text: 'Enter the tavern', destination: 'Tavern' }
+                ]
+            },
+            'Tavern': {
+                text: `The tavern is near-empty. A fire crackles low. A woman eyes you suspiciously, while a bard drones on about a jester who lost a duel to his own shadow.
+
+Behind the bar, a note catches your eye — sealed with wax bearing an hourglass symbol.
+
+"You're not from around here," the barkeep mutters.`,
+                options: [
+                    { text: 'Ask about Gaunter O\'Dimm', destination: 'Ask Barkeep' },
+                    { text: 'Examine the sealed letter', destination: 'Read Letter' }
+                ]
+            },
+            'Ask Barkeep': {
+                text: `The barkeep leans in. "We don't speak that name here, Witcher. Best you leave it be."
+
+You show him a silver coin — not one of this world. His eyes widen.
+
+"He was here. Said he was meeting someone in the old chapel outside town. That place is cursed."`,
+                options: [
+                    { text: 'Head to the chapel', destination: 'Chapel' },
+                    { text: 'Stay and talk to the bard', destination: 'Talk Bard' }
+                ]
+            },
+            'Read Letter': {
+                text: `You break the seal and unfold the letter. It reads:
+
+"Dear Witcher,
+You've stepped into my game, willingly or not.
+Come to the chapel before moonrise. Bring your sword — and your wits.
+— G"
+
+Looks like you have little choice.`,
+                options: [
+                    { text: 'Go to the chapel', destination: 'Chapel' }
+                ]
+            },
+            'Talk Bard': {
+                text: `You slide next to the bard, who stops mid-rhyme and stares. It's none other than Dandelion.
+
+"Geralt! I was just composing a ballad: 'The Witcher Who Glared at Death and Said Not Today' — working title."
+
+He hands you a flask. "Heard you're chasing that creepy O'Dimm. Don't go alone."`,
+                options: [
+                    { text: 'Ask Dandelion to join you', destination: 'With Dandelion' },
+                    { text: 'Head to the chapel alone', destination: 'Chapel' }
+                ]
+            },
+            'With Dandelion': {
+                text: `"Alright," Dandelion says, lacing up boots far too clean for a haunted chapel.
+
+Together, you head into the misty woods.`,
+                options: [
+                    { text: 'Enter the chapel', destination: 'Chapel With Dandelion' }
+                ]
+            },
+            'Chapel': {
+                text: `The old chapel's doors groan open. Candles light themselves. A mirror hangs at the altar — cracked.
+
+O'Dimm stands nearby, smiling like he's already won.
+
+"Geralt. Have you come to bargain? Or simply to lose?"
+
+You ready your sword.`,
+                options: [
+                    { text: 'Attack Gaunter', destination: 'Fight O\'Dimm' },
+                    { text: 'Speak with him first', destination: 'Parley' }
+                ]
+            },
+            'Chapel With Dandelion': {
+                text: `Same eerie chapel, but this time with Dandelion's off-key humming in the background.
+
+"You know, Geralt, this is why I stick to love songs and wine."
+
+O'Dimm grins wider. "Ah, a witness. Good. Let him sing of your doom."`,
+                options: [
+                    { text: 'Attack Gaunter', destination: 'Fight O\'Dimm' },
+                    { text: 'Parley with Gaunter', destination: 'Parley' }
+                ]
+            },
+            'Fight O\'Dimm': {
+                text: `You lunge — steel flashing.
+
+O'Dimm doesn't dodge. Instead, he splits into five copies.`,
+                options: [
+                    { text: 'Use Igni to burn the illusions', destination: 'Igni Attack' },
+                    { text: 'Use Axii to freeze his mind', destination: 'Axii Attack' }
+                ]
+            },
+            'Parley': {
+                text: `"You like contracts, Gaunter?" you growl. "Let's make one."
+
+He chuckles. "Oh, Witcher. But you already signed... when you opened the letter."
+
+From the shadows steps Yennefer, arms crossed.
+
+"He's not yours, Gaunter."
+
+"What do you know of ownership, sorceress?"`,
+                options: [
+                    { text: 'Let Yennefer handle him', destination: 'Yennefer Duel' },
+                    { text: 'Interrupt with a riddle challenge', destination: 'Riddle Challenge' }
+                ]
+            },
+            'Igni Attack': {
+                text: `Flames sweep through the chapel, dispelling illusions.
+
+Only one Gaunter remains. He looks surprised. You thrust...
+
+...but the mirror shatters, and he's gone.
+
+You feel something behind you...`,
+                options: [
+                    { text: 'Turn and strike', destination: 'Final Blow' },
+                    { text: 'Call to Yennefer for help', destination: 'Call Yennefer' }
+                ]
+            },
+            'Axii Attack': {
+                text: `You lock eyes with O'Dimm and push your will into his.
+
+He falters, gripping his head.
+
+"Impressive," he rasps. "But minds are my domain."
+
+Suddenly, Regis — your old vampire friend — bursts through a stained glass window.
+
+"Am I late?"`,
+                options: [
+                    { text: 'Regis and Geralt vs Gaunter', destination: 'Final Battle' }
+                ]
+            },
+            'Yennefer Duel': {
+                text: `Magic crackles. Yennefer conjures a sphere of light; Gaunter counters with shadows.
+
+The chapel trembles.
+
+"Geralt, NOW!" she shouts.`,
+                options: [
+                    { text: 'Strike Gaunter while he\'s distracted', destination: 'Final Blow' },
+                    { text: 'Smash the mirror instead', destination: 'Smash Mirror' }
+                ]
+            },
+            'Riddle Challenge': {
+                text: `You smirk. "Answer this: I am not alive, but I grow. I don't have lungs, but I need air. What am I?"
+
+O'Dimm tilts his head. "A fire."
+
+Correct. His body begins to smoke. "You... trickster!"`,
+                options: [
+                    { text: 'Exploit his moment of weakness', destination: 'Final Blow' },
+                    { text: 'Spare him', destination: 'Spare Gaunter' }
+                ]
+            },
+            'Final Blow': {
+                text: `You strike true. Gaunter's form cracks like a shattered mirror. His scream twists into the wind and vanishes.
+
+You wipe the sweat from your brow and glance at the wreckage.
+
+"Another day, another ancient malevolent being turned into glitter. At this rate, I'll start charging by the existential crisis."`,
+                options: [
+                    { text: 'Ride back to camp with Dandelion', destination: 'Dandelion\'s Campfire Song' },
+                    { text: 'Visit Yennefer\'s lab instead', destination: 'Yennefer\'s Lab' },
+                    { text: 'Just pass out and pretend none of this happened', destination: 'Sleep Time' }
+                ]
+            },
+            'Call Yennefer': {
+                text: `Yennefer freezes Gaunter mid-laugh with a blast of magic.
+
+"Thanks," you grunt.
+
+She smirks. "Owe me dinner."`,
+                options: [
+                    { text: 'Continue to epilogue', destination: 'Epilogue' }
+                ]
+            },
+            'Final Battle': {
+                text: `You and Regis fight like old times — steel and claw against shadow and spite.
+
+It ends with Gaunter bound in a glowing circle.
+
+"Don't break the seal," Regis warns.`,
+                options: [
+                    { text: 'Seal Gaunter\'s fate forever', destination: 'Epilogue' },
+                    { text: 'Let him go with a warning', destination: 'Spare Gaunter' }
+                ]
+            },
+            'Smash Mirror': {
+                text: `You drive your sword into the mirror.
+
+It explodes in shards of light and shadow — Gaunter shrieks as he's pulled inside, trapped.`,
+                options: [
+                    { text: 'Continue to epilogue', destination: 'Epilogue' }
+                ]
+            },
+            'Spare Gaunter': {
+                text: `You lower your sword.
+
+"Run, before I change my mind."
+
+He bows deeply. "Till next time, Witcher."
+
+Dandelion claps. "That was terrifying."`,
+                options: [
+                    { text: 'Continue to epilogue', destination: 'Epilogue' }
+                ]
+            },
+            'Dandelion\'s Campfire Song': {
+                text: `That evening, you and Dandelion make camp beneath the stars. He tunes his lute and begins a song.
+
+"Geralt the Grim, the silver-blade king,
+Fought gods and beasts and felt no sting…"
+
+Roach snorts.`,
+                options: [
+                    { text: 'Ask Dandelion to sing about Yennefer', destination: 'Dandelion Yen Song' },
+                    { text: 'Tell Dandelion to shut it and go to sleep', destination: 'Sleep Time' }
+                ]
+            },
+            'Yennefer\'s Lab': {
+                text: `The lab smells like burned sage and sarcasm. Yennefer's eyes glow faintly as she hovers over a floating mirror shard.
+
+"Don't tell me you're keeping it," you grumble.
+
+"Only until I find a way to destroy it permanently. Unlike your usual method of 'stab first, question never.'"`,
+                options: [
+                    { text: 'Help Yennefer with a new spell', destination: 'Help Yen Spell' },
+                    { text: 'Ask Yennefer if she\'s okay', destination: 'Yen Heart to Heart' }
+                ]
+            },
+            'Dandelion Yen Song': {
+                text: `He strums a softer tune.
+
+"She came in storms, her gaze a flame,
+A raven-haired fury no man could tame…"
+
+You chuckle despite yourself.`,
+                options: [
+                    { text: 'Sleep under the stars', destination: 'Sleep Time' },
+                    { text: 'Ask about Triss instead', destination: 'Triss Memory' }
+                ]
+            },
+            'Sleep Time': {
+                text: `You sleep. Dreams swirl — a crumbling tower, a shattered contract, a mirror that reflects your fears...`,
+                options: [
+                    { text: 'Wake up at Kaer Morhen', destination: 'Epilogue' }
+                ]
+            },
+            'Help Yen Spell': {
+                text: `You steady a beaker while Yennefer etches runes midair.
+
+Magic pulses like thunder. "It's working," she breathes.
+
+The mirror shard floats — glowing with trapped malevolence.`,
+                options: [
+                    { text: 'Prepare to destroy it', destination: 'Destroy Shard' },
+                    { text: 'Store it for study', destination: 'Store Shard' }
+                ]
+            },
+            'Yen Heart to Heart': {
+                text: `She lowers her hands. "You're always the blade, Geralt. But who carries your scars?"
+
+You meet her gaze. "You know I never walk alone."
+
+She nods. "Nor do I."`,
+                options: [
+                    { text: 'Help Yennefer with her spell', destination: 'Help Yen Spell' }
+                ]
+            },
+            'Triss Memory': {
+                text: `Dandelion sighs. "Ah, Triss… warm as Temerian wine."
+
+You remember the trials in Novigrad — fire, betrayal, and love flickering like a dying torch.`,
+                options: [
+                    { text: 'Return to the main journey', destination: 'Epilogue' }
+                ]
+            },
+            'Destroy Shard': {
+                text: `You strike the shard with your silver sword. It shatters — and with it, a shriek escapes to the void.
+
+"Let's hope that ends it," Yen mutters.`,
+                options: [
+                    { text: 'Rest at Kaer Morhen', destination: 'Epilogue' }
+                ]
+            },
+            'Store Shard': {
+                text: `You lock the shard in a rune-sealed box.
+
+"Foolish or wise, we'll find out," Yennefer says.`,
+                options: [
+                    { text: 'Rest at Kaer Morhen', destination: 'Epilogue' }
+                ]
+            },
+            'Epilogue': {
+                text: `Days later, you're at Kaer Morhen, nursing bruises.
+
+Roach nudges your arm, as if to say, "Next time, pick easier jobs."
+
+You sigh. "Yeah, yeah. No more mirror merchants."
+
+Yennefer smirks beside you. "Until the next cursed spoon, Witcher."
+
+**THE END**`,
+                options: [
+                    { text: 'Play again', destination: 'Start' }
+                ]
+            }
+        };
+
+        // Load a story passage
+        function loadPassage(passageName) {
+        if (!storyData[passageName]) return;
+
+        const passage = storyData[passageName];
+        currentPassage = passageName;
+        lastPassageName = passageName;
+
+        const storyTextElement = document.getElementById('story-text');
+        storyTextElement.style.opacity = '0';
+
+        setTimeout(() => {
+            storyTextElement.textContent = passage.text;
+            storyTextElement.style.opacity = '1';
+            storyTextElement.style.transition = 'opacity 0.5s ease-in';
+        }, 200);
+
+        updateStoryOptions(passage.options);
+
+        if (passageName === 'Epilogue') {
+            setTimeout(() => showEndingNotice(), 1000);
+        }
+    }
+
+    function updateStoryOptions(options) {
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        if (!options || options.length === 0) {
+            container.innerHTML = '<p style="text-align: center; opacity: 0.7;">No more choices - the story ends here</p>';
+            return;
+        }
+
+        options.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.className = 'option-button fade-in';
+            button.style.animationDelay = `${index * 0.1}s`;
+            button.textContent = option.text;
+            button.dataset.destination = option.destination;
+
+            button.addEventListener('click', function() {
+                button.style.background = 'linear-gradient(135deg, #5d4318, #4a3412)';
+                setTimeout(() => {
+                    loadPassage(option.destination);
+                }, 200);
+            });
+
+            container.appendChild(button);
+        });
+    }
+
+    function showEndingNotice() {
+        const existingNotice = document.querySelector('.ending-notice');
+        if (existingNotice) existingNotice.remove();
+
+        const notice = document.createElement('div');
+        notice.className = 'ending-notice fade-in';
+        notice.innerHTML = `
+            <h3>🐺 Tale Complete 🐺</h3>
+            <p>You have reached the end of this path in Geralt's story.</p>
+            <p>The choices you made shaped this unique journey through the dark world of The Witcher.</p>
+        `;
+        document.querySelector('.container').appendChild(notice);
+    }
+
+    function pollPassageChanges() {
+        fetch('/api/current_passage')
+            .then(response => response.json())
+            .then(data => {
+                if (data.name && data.name !== lastPassageName) {
+                    loadPassage(data.name);
+                }
+            })
+            .catch(err => console.error("Error polling passage:", err));
+    }
+
+    function updateEmotionFeedback() {
+        fetch('/api/last_emotion')
+            .then(response => response.json())
+            .then(data => {
+                const feedback = document.getElementById('emotion-feedback');
+                if (data.emotion && data.emotion !== "None") {
+                    feedback.textContent = `Emotion Detected: ${data.emotion}`;
+                }
+            })
+            .catch(err => console.error("Emotion feedback error:", err));
+    }
+
+    setInterval(() => {
+        pollPassageChanges();
+        updateEmotionFeedback();
+    }, 2000);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('start-button').addEventListener('click', () => loadPassage('Start'));
+        document.getElementById('restart-button').addEventListener('click', () => {
+            const notice = document.querySelector('.ending-notice');
+            if (notice) notice.remove();
+            loadPassage('Start');
+        });
+
+        document.getElementById('story-text').textContent = 'Click "Begin Your Journey" to start your adventure as Geralt of Rivia...';
+        document.getElementById('options-container').innerHTML = '<p style="text-align: center; opacity: 0.7;">Your choices will shape Geralt\'s destiny...</p>';
+    });
+
+
+
+
+    </script>
+
+<audio id="bg-music" loop="">
+<source src="{{ url_for('static', filename='music/background.mp3') }}" type="audio/mpeg"/>
+</audio>
+
+
+
+
+<script>
+  // Play music after user clicks anywhere
+  window.addEventListener("click", () => {
+    const music = document.getElementById("bg-music");
+    if (music.paused) {
+      music.play();
+    }
+  });
+
+</script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+function updateApiStatus() {
+    fetch('/api/status')
+        .then(res => res.json())
+        .then(data => {
+            const el = document.getElementById('apiStatus');
+            if (!el) return;
+            if (data.api_connected) {
+                el.textContent = "🟢 Witcher Senses Active";
+                el.className = "api-status connected";
+            } else {
+                el.textContent = "🔴 Gerarlt is meditating...";
+                el.className = "api-status disconnected";
+            }
+        })
+        .catch(() => {
+            const el = document.getElementById('apiStatus');
+            if (!el) return;
+            el.textContent = "🔴 Witcher Senses Dormant – Network Error";
+            el.className = "api-status disconnected";
+        });
+}
+setInterval(updateApiStatus, 5000);
+document.addEventListener('DOMContentLoaded', updateApiStatus);
+
+
+
+
+</script></body>
+</html>

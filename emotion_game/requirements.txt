@@ -1,0 +1,16 @@
+import os
+import time
+import threading
+import json
+import webbrowser
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+from flask import Flask, request, jsonify, render_template, send_from_directory
+import socket
+import cv2
+from fer import FER
+from datetime import datetime
+
+
+
+sudo apt update && sudo apt upgrade -y
