@@ -1,0 +1,5 @@
+
+To start the Application from a "Cold Start" (no previous environment),
+you will need to run the following command on the terminal:
+
+./.venv/Scripts/python.exe run_both.py

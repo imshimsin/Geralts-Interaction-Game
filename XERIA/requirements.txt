@@ -1,0 +1,10 @@
+mediapipe
+requests
+cv2
+numpy
+datetime
+time
+threading
+opencv-python
+flask
+

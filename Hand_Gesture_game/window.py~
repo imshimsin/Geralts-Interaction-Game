@@ -1,0 +1,364 @@
+import tkinter as tk
+import tkinter.font as tkFont
+from PIL import Image, ImageTk
+from PIL.Image import Resampling
+import pygame
+import os
+
+# Add these constants at the top of your file
+BG_COLOR = "#2C3E50"  # Dark blue-gray
+TEXT_COLOR = "#ECF0F1"  # Light gray
+BUTTON_COLOR = "#3498DB"  # Bright blue
+BUTTON_TEXT_COLOR = "#FFFFFF"  # White
+
+
+# Create a function to create shadowed buttons
+def create_shadow_button(parent, text, width, command, font_size=14):
+    # Create a frame to hold the layered buttons
+    button_frame = tk.Frame(parent, bg=BG_COLOR)
+    
+    # Shadow button (placed slightly offset)
+    shadow_button = tk.Button(button_frame, text=text, width=width,
+                            font=("Cinzel", font_size),
+                            bg='#2c3e50',  # darker color for shadow
+                            fg='#2c3e50',   # shadow color
+                            relief=tk.FLAT)
+    shadow_button.place(x=2, y=2)  # offset for shadow effect
+    
+    # Main button
+    main_button = tk.Button(button_frame, text=text, width=width,
+                           command=command,
+                           font=("Cinzel", font_size),
+                           bg=BUTTON_COLOR,
+                           fg=BUTTON_TEXT_COLOR,
+                           activebackground="#2980B9",
+                           activeforeground=BUTTON_TEXT_COLOR,
+                           relief=tk.FLAT)
+    main_button.place(x=0, y=0)
+    
+    return button_frame
+
+# Create a custom Text widget with shadow
+class ShadowText(tk.Text):
+    def __init__(self, master=None, **kwargs):
+        frame = tk.Frame(master, bg=BG_COLOR)
+        kwargs['master'] = frame
+        
+        # Shadow text
+        self.shadow = tk.Text(frame, wrap='word',
+                             bg=BG_COLOR,
+                             fg='#2c3e50',  # shadow color
+                             font=("Cinzel", 16),
+                             padx=10, pady=10)
+        self.shadow.place(x=2, y=2)
+        
+        # Main text
+        super().__init__(**kwargs)
+        self.place(x=0, y=0)
+        
+        # Bind scroll events
+        self.shadow.bind('<KeyPress>', lambda e: 'break')
+        self.bind('<<Modified>>', self._on_modified)
+        
+        self.frame = frame
+    
+    def _on_modified(self, event=None):
+        self.shadow.delete(1.0, tk.END)
+        self.shadow.insert(1.0, self.get(1.0, tk.END))
+        self.tk.call('tcl_textSetCursor', self.shadow, 0)
+        self.edit_modified(False)
+
+
+# --- File Paths ---
+base_path = os.path.dirname(os.path.abspath(__file__))
+audio_file = os.path.join(base_path, "D:/MYGAME/WINDOW/Music/The Witcher 3_ Wild Hunt - Geralt of Rivia Extended.mp3")
+bg_image_path = os.path.join(base_path, "D:/MYGAME/WINDOW/Images/Gerald_background_image.png")
+twee_file_path = os.path.join(base_path, "D:/MYGAME/WINDOW/Window/A_Witchers_Story.twee")
+click_sound_path = os.path.join(base_path, "D:/MYGAME/WINDOW/Sounds/Swords_slashing_Low.mp3")
+
+# --- Initialize Window ---
+window = tk.Tk()
+
+'''
+ For the font definition after window initialization
+print("\n" + "="*50)
+print("CHECKING AVAILABLE FONTS")
+print("="*50)
+available_fonts = list(tkFont.families())
+available_fonts.sort()
+print(f"Total fonts found: {len(available_fonts)}")
+print("\nFonts containing 'Cinzel':")
+for font in available_fonts:
+    if "cinzel" in font.lower():
+        print(f"- {font}")
+print("="*50 + "\n") 
+'''
+
+window.title("A Witcher's Story")
+window.geometry("1920x1080")
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+center_x = int((screen_width - 1920) / 2)
+center_y = int((screen_height - 1080) / 2)
+window.geometry(f"1920x1080+{center_x}+{center_y}")
+window.configure(bg=BG_COLOR)
+
+# --- Font ---
+font = tkFont.Font(family="Cinzel", size=18, weight="bold")
+
+# --- Background Image ---
+bg_image_raw = Image.open(bg_image_path).resize((1920, 1080), Resampling.LANCZOS)
+bg_image = ImageTk.PhotoImage(bg_image_raw)
+bg_label = tk.Label(window, image=bg_image)
+bg_label.place(relwidth=1, relheight=1)
+
+# Initialize pygame mixer
+pygame.mixer.init()
+
+# Load the click sound
+click_sound = pygame.mixer.Sound(click_sound_path)
+
+
+# --- Volume Change Handler ---
+def change_volume(val):
+    volume = float(val) / 100
+    pygame.mixer.music.set_volume(volume)
+
+
+# --- Volume Slider (initially hidden) ---
+settings_frame = tk.Frame(window, bg=BG_COLOR)
+volume_label = tk.Label(settings_frame, text="Volume", font=("Cinzel", 12),
+                       bg=BG_COLOR, fg=TEXT_COLOR)
+volume_label_shadow = tk.Label(settings_frame, text="Volume", font=("Cinzel", 12),
+                             bg=BG_COLOR, fg='#2c3e50')
+
+volume_slider = tk.Scale(settings_frame, from_=0, to=100, orient='horizontal',
+                        command=change_volume,
+                        font=("Cinzel", 12),
+                        bg=BUTTON_COLOR,
+                        fg=BUTTON_TEXT_COLOR,
+                        length=200)  # Add a specific length
+volume_slider.set(50)
+
+# --- Show/Hide Settings ---
+settings_visible = False
+
+def toggle_settings():
+    click_sound.play()
+    global settings_visible
+    if settings_visible:
+        settings_frame.pack_forget()
+        settings_visible = False
+    else:
+        settings_frame.pack(pady=10)
+        settings_visible = True
+
+
+# --- Automatically Start Music ---
+def auto_start_music():
+    try:
+        pygame.mixer.music.load(audio_file)
+        pygame.mixer.music.set_volume(volume_slider.get() / 100)
+        pygame.mixer.music.play(-1)  # Loop indefinitely if desired
+    except Exception as e:
+        print(f"Error starting music: {e}")
+
+
+# --- Story Handling ---
+class Story:
+    def __init__(self, twee_file_path):
+        self.passages = self.parse_twee_file(twee_file_path)
+        self.current_passage = self.passages.get("Start", None)
+        self.images = {}  # Dictionary to store loaded images
+        if not self.current_passage:
+            print("Error: Start passage not found.")
+            print("Available passages:", list(self.passages.keys()))
+        else:
+            print(f"Loaded start passage: {self.current_passage[:50]}...")  # Print first 50 chars
+
+    def parse_twee_file(self, twee_file_path):
+        passages = {}
+        try:
+            with open(twee_file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+                passage_blocks = content.split('::')[1:]  # Skip the first empty split
+                for block in passage_blocks:
+                    lines = block.strip().split('\n')
+                    title = lines[0].split('{')[0].strip()  # Remove any JSON-like metadata
+                    text = '\n'.join(lines[1:]).strip()
+                    passages[title] = text
+                    print(f"Loaded passage: {title}")  # Debug: Print each loaded passage
+
+            if "Start" not in passages:
+                print("Warning: 'Start' passage not found. Looking for 'start' (lowercase).")
+                if "start" in passages:
+                    passages["Start"] = passages["start"]
+                    print("Found 'start' (lowercase). Using it as the starting passage.")
+                else:
+                    print("Error: Neither 'Start' nor 'start' passage found.")
+
+        except FileNotFoundError:
+            print(f"Error: Twee file not found at {twee_file_path}")
+        except UnicodeDecodeError as e:
+            print(f"Error decoding file: {e}")
+        return passages
+
+    def get_current_passage(self):
+        return self.current_passage
+
+    def choose_option(self, option):
+        if '->' in option:
+            _, passage_title = option.split('->')
+            self.current_passage = self.passages.get(passage_title.strip(), None)
+            if not self.current_passage:
+                print(f"Error: Passage '{passage_title.strip()}' not found.")
+
+    def get_image(self, passage_name):
+        if passage_name not in self.images:
+            image_path = os.path.join(base_path, f"D:/MY GAME/WINDOW/Images/{passage_name}.jpg")
+            if os.path.exists(image_path):
+                img = Image.open(image_path)
+                img = img.resize((800, 450), Image.LANCZOS)  # Adjust size as needed
+                self.images[passage_name] = ImageTk.PhotoImage(img)
+            else:
+                self.images[passage_name] = None
+        return self.images[passage_name]
+
+
+# --- Initialize Story ---
+story = Story(twee_file_path)
+
+
+story_frame = tk.Frame(window, bg=BG_COLOR)
+story_frame.pack(pady=20, padx=20, fill='both', expand=True)
+
+
+# Story text with the defined background color
+story_text = tk.Text(story_frame, wrap='word', 
+                    bg=BG_COLOR,
+                    fg=TEXT_COLOR,
+                    font=("Cinzel", 16), 
+                    padx=10, 
+                    pady=10,
+                    highlightthickness=0,
+                    borderwidth=0)
+story_text.pack(fill='both', expand=True)
+
+
+
+image_label = tk.Label(story_frame, bg=BG_COLOR)
+image_label.pack(pady=10)
+
+
+def update_story_display():
+    current_passage = story.get_current_passage()
+    if current_passage:
+        print(f"Displaying passage: {current_passage[:50]}...")
+        story_text.delete(1.0, tk.END)
+        story_text.insert(tk.END, current_passage)
+
+        # Display image if available
+        image = story.get_image(story.current_passage)
+        if image:
+            image_label.config(image=image)
+            image_label.image = image
+            image_label.pack(pady=10)
+        else:
+            image_label.pack_forget()
+
+        options = [line.strip() for line in current_passage.split('\n') if line.strip().startswith('[[')]
+        for widget in option_frame.winfo_children():
+            widget.destroy()
+        # Update the button creation in update_story_display
+        for option in options:
+            option_text = option.split('->')[0].strip('[]')
+            dest_passage = option.split('->')[1].strip('[]')
+            button = tk.Button(option_frame, text=option_text,
+                           command=lambda dest=dest_passage: on_option_click(dest),
+                           font=("Cinzel", 14),
+                           bg=BUTTON_COLOR,
+                           fg=BUTTON_TEXT_COLOR,
+                           activebackground="#2980B9",
+                           activeforeground=BUTTON_TEXT_COLOR,
+                           relief='flat',
+                           padx=10,
+                           pady=5)
+            button.pack(side="top", padx=10, pady=5, fill='x')
+
+
+# --- Option Buttons ---
+option_frame = tk.Frame(window, bg=BG_COLOR)
+option_frame.pack(pady=20)
+
+
+def on_option_click(destination):
+    click_sound.play()
+    story.current_passage = story.passages.get(destination, None)
+    if story.current_passage:
+        update_story_display()
+    else:
+        print(f"Error: Passage '{destination}' not found.")
+
+
+# --- Buttons ---
+button_frame = tk.Frame(window, bg=BG_COLOR)
+button_frame.pack(side='bottom', pady=20)
+
+# Regular buttons without shadows
+start_button = tk.Button(button_frame, text="▶ Start", width=15,
+                        command=lambda: on_option_click("Start"),
+                        font=("Cinzel", 14),
+                        bg=BUTTON_COLOR,
+                        fg=BUTTON_TEXT_COLOR,
+                        activebackground="#2980B9",
+                        activeforeground=BUTTON_TEXT_COLOR)
+start_button.pack(side='left', padx=10)
+
+settings_button = tk.Button(button_frame, text="⚙ Settings", width=15,
+                          command=toggle_settings,
+                          font=("Cinzel", 14),
+                          bg=BUTTON_COLOR,
+                          fg=BUTTON_TEXT_COLOR,
+                          activebackground="#2980B9",
+                          activeforeground=BUTTON_TEXT_COLOR)
+settings_button.pack(side='left', padx=10)
+
+# Volume controls
+settings_frame = tk.Frame(window, bg=BG_COLOR)
+volume_label = tk.Label(settings_frame, text="Volume", font=("Cinzel", 12),
+                       bg=BG_COLOR, fg=TEXT_COLOR)
+volume_label.pack(pady=(0, 5))
+
+volume_slider = tk.Scale(settings_frame, from_=0, to=100, orient='horizontal',
+                        command=change_volume,
+                        font=("Cinzel", 12),
+                        bg=BUTTON_COLOR,
+                        fg=BUTTON_TEXT_COLOR,
+                        length=200)
+volume_slider.set(50)
+volume_slider.pack()
+
+
+# --- Handle Window Close ---
+def on_close():
+    pygame.mixer.music.stop()
+    window.destroy()
+
+
+window.protocol("WM_DELETE_WINDOW", on_close)
+
+
+def start_story():
+    story.current_passage = story.passages.get("Start", None)
+    if story.current_passage:
+        update_story_display()
+    else:
+        print("Error: Unable to start the story. 'Start' passage not found.")
+
+
+# --- Start Music on Launch ---
+window.after(100, auto_start_music)
+window.after(200, start_story)
+
+# --- Start App ---
+window.mainloop()

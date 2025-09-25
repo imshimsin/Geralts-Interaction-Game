@@ -1,0 +1,301 @@
+:: StoryTitle
+A Witchers Story
+
+:: StoryData
+{
+  "ifid": "DCCF8512-6A61-4216-B745-861364D21FA5",
+  "format": "Harlowe",
+  "format-version": "3.3.9",
+  "start": "Start",
+  "zoom": 1
+}
+
+:: Start {"position":"25,25","size":"100,100"}
+The wind howls across the desolate Velen moorlands. Clouds churn like a boiling stew above, and the stench of rot clings to the air.
+
+You are Geralt of Rivia — Witcher, monster slayer, part-time philosopher, full-time magnet for otherworldly trouble.
+
+You're astride Roach, who — for once — isn't standing on a rooftop. A strange rumor has reached you: the Merchant of Mirrors has returned.
+
+"Great," you mutter. "And here I thought today would just involve drowners."
+
+[[Enter the tavern->Tavern]]
+
+:: Ask Barkeep {"position":"275,25","size":"100,100"}
+The barkeep leans in. "We don't speak that name here, Witcher. Best you leave it be."
+
+You show him a silver coin — not one of this world. His eyes widen.
+
+"He was here. Said he was meeting someone in the old chapel outside town. That place is cursed."
+
+[[Head to the chapel->Chapel]]
+[[Stay and talk to the bard->Talk Bard]]
+
+:: Axii Attack {"position":"150,150","size":"100,100"}
+You lock eyes with O'Dimm and push your will into his.
+
+He falters, gripping his head.
+
+"Impressive," he rasps. "But minds are my domain."
+
+Suddenly, Regis — your old vampire friend — bursts through a stained glass window.
+
+"Am I late?"
+
+[[Regis and Geralt vs Gaunter->Final Battle]]
+
+:: Call Yennefer {"position":"900,150","size":"100,100"}
+Yennefer freezes Gaunter mid-laugh with a blast of magic.
+
+"Thanks," you grunt.
+
+She smirks. "Owe me dinner."
+
+[[Epilogue->Epilogue]]
+
+:: Chapel {"position":"775,25","size":"100,100"}
+The old chapel's doors groan open. Candles light themselves. A mirror hangs at the altar — cracked.
+
+O'Dimm stands nearby, smiling like he's already won.
+
+"Geralt. Have you come to bargain? Or simply to lose?"
+
+You ready your sword.
+
+[[Attack Gaunter->Fight O'Dimm]]
+[[Speak with him first->Parley]]
+
+:: Chapel With Dandelion {"position":"900,25","size":"100,100"}
+Same eerie chapel, but this time with Dandelion's off-key humming in the background.
+
+"You know, Geralt, this is why I stick to love songs and wine."
+
+O'Dimm grins wider. "Ah, a witness. Good. Let him sing of your doom."
+
+[[Attack Gaunter->Fight O'Dimm]]
+[[Parley with Gaunter->Parley]]
+
+:: Dandelion Yen Song {"position":"25,275","size":"100,100"}
+He strums a softer tune.
+
+"She came in storms, her gaze a flame,
+A raven-haired fury no man could tame…"
+
+You chuckle despite yourself.
+
+[[Sleep under the stars->Sleep Time]]
+[[Ask about Triss instead->Triss Memory]]
+
+:: Dandelion's Campfire Song {"position":"1150,150","size":"100,100"}
+That evening, you and Dandelion make camp beneath the stars. He tunes his lute and begins a song.
+
+"Geralt the Grim, the silver-blade king,
+Fought gods and beasts and felt no sting…"
+
+Roach snorts.
+
+[[Ask Dandelion to sing about Yennefer->Dandelion Yen Song]]
+[[Tell Dandelion to shut it and go to sleep->Sleep Time]]
+
+:: Destroy Shard {"position":"775,275","size":"100,100"}
+You strike the shard with your silver sword. It shatters — and with it, a shriek escapes to the void.
+
+"Let's hope that ends it," Yen mutters.
+
+[[Rest at Kaer Morhen->Epilogue]]
+
+:: Epilogue {"position":"1025,275","size":"100,100"}
+Days later, you're at Kaer Morhen, nursing bruises.
+
+Roach nudges your arm, as if to say, "Next time, pick easier jobs."
+
+You sigh. "Yeah, yeah. No more mirror merchants."
+
+Yennefer smirks beside you. "Until the next cursed spoon, Witcher."
+
+**THE END**
+
+[[Play again->Start]]
+
+:: Fight O'Dimm {"position":"1150,25","size":"100,100"}
+You lunge — steel flashing.
+
+O'Dimm doesn't dodge. Instead, he splits into five copies.
+
+[[Use Igni to burn the illusions->Igni Attack]]
+[[Use Axii to freeze his mind->Axii Attack]]
+
+:: Final Battle {"position":"1025,150","size":"100,100"}
+You and Regis fight like old times — steel and claw against shadow and spite.
+
+It ends with Gaunter bound in a glowing circle.
+
+"Don't break the seal," Regis warns.
+
+[[Seal Gaunter's fate forever->Epilogue]]
+[[Let him go with a warning->Spare Gaunter]]
+
+:: Final Blow {"position":"525,150","size":"100,100"}
+You strike true. Gaunter's form cracks like a shattered mirror. His scream twists into the wind and vanishes.
+
+You wipe the sweat from your brow and glance at the wreckage.
+
+"Another day, another ancient malevolent being turned into glitter.
+At this rate, I'll start charging by the existential crisis."
+
+[[Ride back to camp with Dandelion->Dandelion's Campfire Song]]
+[[Visit Yennefer's lab instead->Yennefer's Lab]]
+[[Just pass out and pretend none of this happened->Sleep Time]]
+
+:: Help Yen Spell {"position":"525,275","size":"100,100"}
+You steady a beaker while Yennefer etches runes midair.
+
+Magic pulses like thunder. "It's working," she breathes.
+
+The mirror shard floats — glowing with trapped malevolence.
+
+[[Prepare to destroy it->Destroy Shard]]
+[[Store it for study->Store Shard]]
+
+:: Igni Attack {"position":"25,150","size":"100,100"}
+Flames sweep through the chapel, dispelling illusions.
+
+Only one Gaunter remains. He looks surprised. You thrust...
+
+...but the mirror shatters, and he's gone.
+
+You feel something behind you...
+
+[[Turn and strike->Final Blow]]
+[[Call to Yennefer for help->Call Yennefer]]
+
+:: Parley {"position":"1025,25","size":"100,100"}
+"You like contracts, Gaunter?" you growl. "Let's make one."
+
+He chuckles. "Oh, Witcher. But you already signed... when you opened the letter."
+
+From the shadows steps Yennefer, arms crossed.
+
+"He's not yours, Gaunter."
+
+"What do you know of ownership, sorceress?"
+
+[[Let Yennefer handle him->Yennefer Duel]]
+[[Interrupt with a riddle challenge->Riddle Challenge]]
+
+:: Read Letter {"position":"400,25","size":"100,100"}
+You break the seal and unfold the letter. It reads:
+
+> "Dear Witcher,
+> You've stepped into my game, willingly or not.
+> Come to the chapel before moonrise. Bring your sword — and your wits.
+> — G"
+
+Looks like you have little choice.
+
+[[Go to the chapel->Chapel]]
+
+:: Riddle Challenge {"position":"400,150","size":"100,100"}
+You smirk. "Answer this: I am not alive, but I grow. I don't have lungs, but I need air. What am I?"
+
+O'Dimm tilts his head. "A fire."
+
+Correct. His body begins to smoke. "You... trickster!"
+
+[[Exploit his moment of weakness->Final Blow]]
+[[Spare him->Spare Gaunter]]
+
+:: Sleep Time {"position":"275,275","size":"100,100"}
+You sleep. Dreams swirl — a crumbling tower, a shattered contract, a mirror that reflects your fears...
+
+[[Wake up at Kaer Morhen->Epilogue]]
+
+:: Smash Mirror {"position":"650,150","size":"100,100"}
+You drive your sword into the mirror.
+
+It explodes in shards of light and shadow — Gaunter shrieks as he's pulled inside, trapped.
+
+[[Epilogue->Epilogue]]
+
+:: Spare Gaunter {"position":"775,150","size":"100,100"}
+You lower your sword.
+
+"Run, before I change my mind."
+
+He bows deeply. "Till next time, Witcher."
+
+Dandelion claps. "That was terrifying."
+
+[[Epilogue->Epilogue]]
+
+:: Tavern {"position":"150,25","size":"100,100"}
+The tavern is near-empty. A fire crackles low. A woman eyes you suspiciously,
+while a bard drones on about a jester who lost a duel to his own shadow.
+
+Behind the bar, a note catches your eye — sealed with wax bearing an hourglass symbol.
+
+"You're not from around here," the barkeep mutters.
+
+[[Ask about Gaunter O'Dimm->Ask Barkeep]]
+[[Examine the sealed letter->Read Letter]]
+
+:: Store Shard {"position":"900,275","size":"100,100"}
+You lock the shard in a rune-sealed box.
+
+"Foolish or wise, we'll find out," Yennefer says.
+
+[[Rest at Kaer Morhen->Epilogue]]
+
+:: Talk Bard {"position":"525,25","size":"100,100"}
+You slide next to the bard, who stops mid-rhyme and stares. It's none other than Dandelion.
+
+"Geralt! I was just composing a ballad: *'The Witcher Who Glared at Death and Said 'Not Today''* — working title."
+
+He hands you a flask. "Heard you're chasing that creepy O'Dimm. Don't go alone."
+
+[[Ask Dandelion to join you->With Dandelion]]
+[[Head to the chapel alone->Chapel]]
+
+:: Triss Memory {"position":"150,275","size":"100,100"}
+Dandelion sighs. "Ah, Triss… warm as Temerian wine."
+
+You remember the trials in Novigrad — fire, betrayal, and love flickering like a dying torch.
+
+[[Return to the main journey->Epilogue]]
+
+:: With Dandelion {"position":"650,25","size":"100,100"}
+"Alright," Dandelion says, lacing up boots far too clean for a haunted chapel.
+
+Together, you head into the misty woods.
+
+[[Enter the chapel->Chapel With Dandelion]]
+
+:: Yen Heart to Heart {"position":"650,275","size":"100,100"}
+She lowers her hands. "You're always the blade, Geralt. But who carries your scars?"
+
+You meet her gaze. "You know I never walk alone."
+
+She nods. "Nor do I."
+
+[[Help Yennefer with her spell->Help Yen Spell]]
+
+:: Yennefer Duel {"position":"275,150","size":"100,100"}
+Magic crackles. Yennefer conjures a sphere of light; Gaunter counters with shadows.
+
+The chapel trembles.
+
+"Geralt, NOW!" she shouts.
+
+[[Strike Gaunter while he's distracted->Final Blow]]
+[[Smash the mirror instead->Smash Mirror]]
+
+:: Yennefer's Lab {"position":"400,275","size":"100,100"}
+The lab smells like burned sage and sarcasm.
+Yennefer's eyes glow faintly as she hovers over a floating mirror shard.
+
+"Don't tell me you're keeping it," you grumble.
+
+"Only until I find a way to destroy it permanently. Unlike your usual method of 'stab first, question never.'"
+
+[[Help Yennefer with a new spell->Help Yen Spell]]
+[[Ask Yennefer if she's okay->Yen Heart to Heart]]

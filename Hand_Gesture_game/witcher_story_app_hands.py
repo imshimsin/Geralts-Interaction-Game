@@ -1,0 +1,885 @@
+from flask import Flask, render_template, request, jsonify, send_from_directory
+import os
+import threading
+import time
+import json
+import requests
+import webbrowser
+from datetime import datetime
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import logging
+
+# --- Constants ---
+# UI colors and settings for consistency across the app
+BG_COLOR = "#2f2f2f"  # dark background for the UI
+TEXT_COLOR = "#FFFFFF"  # white text for contrast
+BUTTON_COLOR = "#b6b943"  # main button color
+BUTTON_HOVER = "#d1d35f"  # hover effect for buttons
+
+# --- API Configuration ---
+API_BASE_URL = "http://localhost:5000"  # local gesture API server
+POLLING_INTERVAL = 2  # how often to poll for gestures (seconds)
+
+# --- Global Variables for gesture state ---
+last_detected_gesture = None  # latest gesture for UI/debug
+last_processed_gesture_id = None  # avoid duplicate processing
+last_peace_sign_time = 0  # for gesture cooldowns
+last_index_up_time = 0
+last_thumbs_up_time = 0
+last_thumbs_down_time = 0
+GESTURE_COOLDOWN = 3  # seconds to wait before accepting same gesture again
+
+# --- File Paths ---
+# All paths are built relative to this script’s location
+base_path = os.path.dirname(os.path.abspath(__file__))
+
+# Paths to game resources
+audio_file = os.path.join(base_path, "D:/MYGAME/GAME/Music/The Witcher 3_ Wild Hunt - Geralt of Rivia Extended.mp3")
+bg_image_path = os.path.join(base_path, "D:/MYGAME/GAME/Images/Geralt-of-Rivia-Desktop-Wallpaper.png.png")
+twee_file_path = os.path.join(base_path, "D:/MYGAME/GAME/Hand_Gesture_game/A_Witchers_Story.twee")
+click_sound_path = os.path.join(base_path, "D:/MYGAME/GAME/Sounds/Swords_slashing_Low.mp3")
+
+# --- Flask App Initialization ---
+# Creates the Flask app with folders for static files and templates
+app = Flask(__name__,
+            static_folder='static',
+            template_folder='templates')
+
+
+# --- Story Handler ---
+class Story:
+    """
+    Represents the interactive story loaded from a Twee file.
+    Handles:
+    - parsing the Twee format into passages
+    - moving between passages based on options
+    - providing cleaned passage text and options for the UI
+    """
+
+    def __init__(self, twee_file_path):
+        # Load and parse the Twee file on initialization
+        self.passages = self.parse_twee_file(twee_file_path)
+        # Start with the 'Start' passage by default
+        self.current_passage = self.passages.get("Start", None)
+        self.current_passage_name = "Start"
+
+    def parse_twee_file(self, twee_file_path):
+        """
+        Parses a Twee file:
+        Splits content by '::' markers,
+        extracts passage titles and text,
+        stores them in a dictionary.
+        """
+        passages = {}
+        try:
+            with open(twee_file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+                passage_blocks = content.split('::')[1:]  # skip preamble
+
+                for block in passage_blocks:
+                    lines = block.strip().split('\n')
+                    title = lines[0].split('{')[0].strip()  # get passage name, ignore metadata
+                    text = '\n'.join(lines[1:]).strip()
+                    passages[title] = text
+
+            # If there's no exact 'Start', fallback to 'start'
+            if "Start" not in passages:
+                if "start" in passages:
+                    passages["Start"] = passages["start"]
+
+        except Exception as e:
+            print(f"Error loading Twee: {e}")
+        return passages
+
+    def get_current_passage(self):
+        """Returns the raw text of the current passage"""
+        return self.current_passage
+
+    def choose_option(self, option):
+        """
+        Moves the story to another passage based on chosen option.
+        If the target passage doesn't exist, stays on current.
+        Debug prints help trace navigation.
+        """
+        print(f"DEBUG: Attempting to navigate to passage: '{option}'")
+        print(f"DEBUG: Available passages: {list(self.passages.keys())}")
+
+        if option in self.passages:
+            self.current_passage = self.passages[option]
+            self.current_passage_name = option
+            print(f"DEBUG: Successfully navigated to: '{option}'")
+            return self.current_passage
+        else:
+            print(f"DEBUG: Passage '{option}' not found! Staying on current passage: '{self.current_passage_name}'")
+            return self.current_passage
+
+    def extract_options(self, passage_text):
+        """
+        Parses passage text to find options in [[option -> destination]] format.
+        Returns a list of option dicts.
+        """
+        if not passage_text:
+            return []
+
+        options = []
+        for line in passage_text.split('\n'):
+            line = line.strip()
+            if line.startswith('[['):
+                if '->' in line:
+                    option_text = line.split('->')[0].strip('[] ')
+                    dest_passage = line.split('->')[1].strip('[] ')
+                    options.append({
+                        'text': option_text,
+                        'destination': dest_passage
+                    })
+        return options
+
+    def get_passage_info(self, passage_name=None):
+        """
+        Combines cleaned passage text + options into a structured dict.
+        Removes [[option]] lines from the text body.
+        """
+        if passage_name is None:
+            passage_name = self.current_passage_name
+            passage_text = self.current_passage
+        else:
+            passage_text = self.passages.get(passage_name, "")
+
+        options = self.extract_options(passage_text)
+
+        clean_text = ""
+        for line in passage_text.split('\n'):
+            if not line.strip().startswith('[['):
+                clean_text += line + "\n"
+
+        return {
+            'name': passage_name,
+            'text': clean_text.strip(),
+            'options': options,
+            'has_image': self.has_image(passage_name)
+        }
+
+    def has_image(self, passage_name):
+        """
+        Checks if there's an image file for this passage.
+        Images are named after passage names.
+        """
+        image_path = os.path.join(base_path, f"D:/MYGAME/GAME/Images/{passage_name}.jpg")
+        return os.path.exists(image_path)
+
+
+# --- Create Story instance ---
+story = Story(twee_file_path)
+
+
+# --- Gesture API Client ---
+class GestureApiClient:
+    """
+    Handles communication with the external Hand Gesture API.
+    - Tests connection on startup.
+    - Fetches the latest detected gesture.
+    - Can check what endpoints are available.
+    """
+
+    def __init__(self, base_url="http://localhost:5000", api_key=None):
+        # Store base URL, remove trailing slash if present
+        self.base_url = base_url.rstrip('/')
+        self.api_key = api_key
+
+        self.is_connected = False  # True if API responds successfully
+        self.connection_error = None  # Stores any connection failure message
+
+        # Build headers for requests (adds auth if API key is given)
+        self.headers = {'Content-Type': 'application/json'}
+        if api_key:
+            self.headers['Authorization'] = f'Bearer {api_key}'
+
+        # Use a session for efficient re-use of connections
+        self.session = requests.Session()
+        self.last_seen_id = None  # Tracks the last gesture ID to detect new ones
+
+        # Immediately test connection to the API
+        self.test_connection()
+
+    def test_connection(self):
+        """
+        Tries to connect to several common endpoints to verify the API is up.
+        Marks self.is_connected True if any respond with HTTP < 400.
+        """
+        test_endpoints = [
+            "/api/status",
+            "/api/health",
+            "/health",
+            "/status",
+            "/"
+        ]
+
+        for endpoint in test_endpoints:
+            try:
+                test_url = f"{self.base_url}{endpoint}"
+                print(f"Testing connection to: {test_url}")
+
+                response = self.session.get(test_url, headers=self.headers, timeout=15)
+
+                if response.status_code < 400:
+                    self.is_connected = True
+                    self.connection_error = None
+                    print(f"✅ Successfully connected to API at {test_url}")
+                    return True
+
+            except requests.exceptions.ConnectionError:
+                continue
+            except requests.exceptions.Timeout:
+                continue
+            except Exception:
+                continue
+
+        # If none worked, flag error
+        self.is_connected = False
+        self.connection_error = f"Connection refused - Is the gesture API server running on {self.base_url}?"
+        print(f"❌ Connection Error: {self.connection_error}")
+        return False
+
+    def get_latest_gesture(self):
+        """
+        Calls the '/gestures' endpoint, expects a list of gestures.
+        Returns details about the most recent one, or None.
+        """
+        try:
+            response = self.session.get(f"{self.base_url}/gestures", headers=self.headers, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if data and isinstance(data, list):
+                    latest = data[0]
+                    return {
+                        'id': latest.get('id', int(time.time())),
+                        'gesture': latest.get('gesture', '').lower(),
+                        'timestamp': latest.get('timestamp', time.time()),
+                        'confidence': latest.get('confidence', 1.0)
+                    }
+        except Exception as e:
+            print(f"Error fetching gestures: {e}")
+        return None
+
+    def get_available_endpoints(self):
+        """
+        Debug helper:
+        Tries many possible endpoints to see which ones respond.
+        Useful when testing an unknown API.
+        """
+        try:
+            endpoints_to_test = [
+                "/api/status",
+                "/api/gesture/latest",
+                "/api/gestures/latest",
+                "/gesture/latest",
+                "/gestures",
+                "/health",
+                "/status",
+                "/"
+            ]
+
+            available_endpoints = []
+
+            for endpoint in endpoints_to_test:
+                try:
+                    full_url = f"{self.base_url}{endpoint}"
+                    response = self.session.get(full_url, headers=self.headers, timeout=3)
+                    if response.status_code < 400:
+                        available_endpoints.append({
+                            'endpoint': endpoint,
+                            'status': response.status_code,
+                            'content_preview': (
+                                response.text[:200] + "..." if len(response.text) > 200 else response.text
+                            )
+                        })
+                except:
+                    continue
+
+            return available_endpoints
+
+        except Exception as e:
+            print(f"Error checking endpoints: {e}")
+            return []
+
+
+# --- Initialize API client placeholder ---
+api_client = None  # Will be created later, after config is gathered
+
+# --- State Variables ---
+volume_level = 50  # Default audio volume
+settings_visible = False  # UI toggle for showing settings (not used directly here)
+current_options = []  # Holds current story options
+api_connected = False  # Whether the API is connected
+
+
+# --- Flask Routes ---
+
+@app.route('/')
+def index():
+    """
+    Root page.
+    Renders 'index.html' with:
+      - background image path
+      - current volume level
+      - API connection status
+    """
+    global api_client
+    api_connected = api_client.is_connected if api_client else False
+    return render_template('index.html',
+                           bg_image=bg_image_path.replace('\\', '/'),
+                           volume=volume_level,
+                           api_connected=api_connected)
+
+
+@app.route('/api/passage')
+def get_passage():
+    """
+    API endpoint: Get a passage by name.
+    If name is not found, returns an error + keeps current passage.
+    """
+    passage_name = request.args.get('name', 'Start')
+    app.logger.info(f"Received request for passage: {passage_name}")
+
+    try:
+        if passage_name not in story.passages:
+            # Log missing passage, do NOT reset to Start forcibly
+            app.logger.warning(f"Passage '{passage_name}' not found. Available: {list(story.passages.keys())}")
+            return jsonify({
+                "error": f"Passage '{passage_name}' not found",
+                "name": story.current_passage_name,
+                "text": f"The passage '{passage_name}' could not be found. Staying on current passage.",
+                "options": story.extract_options(story.current_passage)
+            }), 404
+
+        # Move story to requested passage
+        story.choose_option(passage_name)
+        passage_info = story.get_passage_info()
+        app.logger.info(f"Loaded passage: {passage_name} with {len(passage_info.get('options', []))} options")
+        return jsonify(passage_info)
+
+    except Exception as e:
+        app.logger.error(f"Error loading passage {passage_name}: {str(e)}")
+        try:
+            # Return current passage info as fallback
+            current_info = story.get_passage_info()
+            current_info["error"] = f"Error loading {passage_name}: {str(e)}"
+            return jsonify(current_info), 500
+        except:
+            return jsonify({
+                "error": str(e),
+                "name": "Start",
+                "text": "Error loading passage. Returning to start.",
+                "options": [{"text": "Start Over", "destination": "Start"}]
+            }), 500
+
+
+@app.route('/api/current_passage')
+def get_current_passage():
+    """
+    API: Always return current passage info.
+    """
+    try:
+        passage_info = story.get_passage_info()
+        return jsonify(passage_info)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/last_gesture')
+def get_last_gesture():
+    """
+    API: Return last detected gesture, if any.
+    """
+    gesture_data = api_client.get_latest_gesture() if api_client else None
+    return jsonify({"gesture": gesture_data['gesture'] if gesture_data else "None"})
+
+
+@app.route('/audio/<path:filename>')
+def serve_audio(filename):
+    """
+    Serves music files from the Music directory.
+    """
+    audio_dir = os.path.join(base_path, "D:/MYGAME/GAME/Music")
+    return send_from_directory(audio_dir, filename)
+
+
+@app.route('/sounds/<path:filename>')
+def serve_sounds(filename):
+    """
+    Serves sound effects from the Sounds directory.
+    """
+    sounds_dir = os.path.join(base_path, "D:/MYGAME/GAME/Sounds")
+    return send_from_directory(sounds_dir, filename)
+
+
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    """
+    Serves images from the Images directory.
+    """
+    image_dir = os.path.join(base_path, "D:/MYGAME/GAME/Images")
+    return send_from_directory(image_dir, filename)
+
+
+@app.route('/api/volume', methods=['POST'])
+def update_volume():
+    """
+    Updates the volume_level from client POST.
+    """
+    global volume_level
+    data = request.get_json()
+    volume_level = data.get('volume', 50)
+    return jsonify({"status": "success", "volume": volume_level})
+
+
+@app.route('/api/reconnect')
+def reconnect_api():
+    """
+    Tries to reconnect the API client.
+    """
+    global api_client, api_connected
+    if api_client:
+        success = api_client.test_connection()
+        api_connected = success
+        return jsonify({
+            "status": "success" if success else "error",
+            "connected": success,
+            "error": api_client.connection_error if not success else None
+        })
+    return jsonify({
+        "status": "error",
+        "connected": False,
+        "error": "API client not initialized"
+    })
+
+
+@app.route('/api/debug/story')
+def debug_story():
+    """
+    Debug info for the story:
+    - Current passage name/text
+    - Available passages
+    - Options
+    - If there's an image
+    - Gesture status
+    """
+    try:
+        current_passage_info = story.get_passage_info()
+        return jsonify({
+            "current_passage": story.current_passage_name,
+            "current_passage_text": story.current_passage[:100] + "..."
+            if story.current_passage and len(story.current_passage) > 100
+            else story.current_passage,
+            "available_passages": list(story.passages.keys()),
+            "total_passages": len(story.passages),
+            "options": story.extract_options(story.current_passage),
+            "has_image": story.has_image(story.current_passage_name),
+            "gesture_status": {
+                "last_detected": last_detected_gesture,
+                "api_connected": api_client.is_connected if api_client else False
+            }
+        })
+    except Exception as e:
+        app.logger.error(f"Error in debug_story: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/status')
+@app.route('/api/status')
+def get_status():
+    """
+    Basic health status for the frontend:
+    - API connection state
+    - Last error if any
+    - Volume level
+    - Hardcoded mode: gestures
+    """
+    global api_client
+    return jsonify({
+        "api_connected": api_client.is_connected if api_client else False,
+        "api_error": api_client.connection_error if api_client else "API client not initialized",
+        "volume": volume_level,
+        "mode": "gestures"
+    })
+
+
+@app.route('/gestures')
+def get_gestures():
+    """
+    Returns a list with the latest gesture in the format expected by the client.
+    If no gesture has been detected yet, returns an empty list.
+    """
+    try:
+        if last_detected_gesture:
+            return jsonify([{
+                'id': int(time.time()),  # Use current timestamp as ID
+                'gesture': last_detected_gesture.split(' ')[-1].lower(),  # Extract gesture keyword
+                'timestamp': datetime.now().isoformat(),
+                'confidence': 1.0
+            }])
+        else:
+            return jsonify([])  # Nothing detected yet
+    except Exception as e:
+        app.logger.error(f"Error in get_gestures: {str(e)}")
+        return jsonify([]), 500
+
+
+@app.route('/api/gestures')
+def get_api_gestures():
+    """
+    Same as /gestures — just exposed under /api/gestures for alternative clients.
+    """
+    return get_gestures()
+
+
+@app.route('/api/gestures/latest')
+def get_latest_gesture_api():
+    """
+    Returns only the latest single gesture as an object, not a list.
+    """
+    try:
+        if last_detected_gesture:
+            return jsonify({
+                'id': int(time.time()),
+                'gesture': last_detected_gesture.split(' ')[-1].lower(),
+                'timestamp': datetime.now().isoformat(),
+                'confidence': 1.0
+            })
+        else:
+            return jsonify(None)
+    except Exception as e:
+        app.logger.error(f"Error in get_latest_gesture_api: {str(e)}")
+        return jsonify(None), 500
+
+
+# --- Duplicate helper method versions ---
+def get_latest_gesture(self):
+    """
+    Alternate version for the API client class.
+    Calls the /api/last_gesture endpoint, re-checks result, parses gesture.
+    """
+    try:
+        response = self.session.get(f"{self.base_url}/api/last_gesture", headers=self.headers, timeout=20)
+        if response.status_code == 200:
+            data = response.json()
+            gesture_text = data.get('gesture', '')
+            if gesture_text and gesture_text != "None":
+                return {
+                    'id': int(time.time()),
+                    'gesture': gesture_text.split(' ')[-1].lower(),
+                    'timestamp': time.time(),
+                    'confidence': 1.0
+                }
+        return None
+    except:
+        return None
+
+
+def get_latest_gesture_simple_fix(self):
+    """
+    Slightly simpler fix version of same helper.
+    Uses same logic but with shorter timeout.
+    """
+    try:
+        response = self.session.get(f"{self.base_url}/api/last_gesture", headers=self.headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            gesture_text = data.get('gesture', '')
+
+            if gesture_text and gesture_text != "None":
+                return {
+                    'id': int(time.time()),
+                    'gesture': gesture_text.split(' ')[-1].lower(),
+                    'timestamp': datetime.now().isoformat(),
+                    'confidence': 1.0
+                }
+        return None
+    except Exception as e:
+        print(f"Error fetching gestures: {e}")
+        return None
+
+
+@app.route('/api/debug/endpoints')
+def debug_endpoints():
+    """
+    Debug helper:
+    Calls get_available_endpoints() on the API client.
+    Shows what the remote gesture API responds to.
+    """
+    global api_client
+    if api_client:
+        endpoints = api_client.get_available_endpoints()
+        return jsonify({
+            "base_url": api_client.base_url,
+            "mode": "gestures",
+            "available_endpoints": endpoints,
+            "connection_status": api_client.is_connected,
+            "last_error": api_client.connection_error
+        })
+    return jsonify({"error": "API client not initialized"})
+
+
+@app.route('/get_logs')
+def get_logs():
+    """
+    Example log feed endpoint.
+    Here, just returns a dummy hardcoded log entry.
+    """
+    return jsonify({"logs": ["2025-05-21 16:22:01 - Detected gesture: thumbs_up"]})
+
+
+# --- Setup Functions ---
+def setup_static_dirs():
+    """
+    Ensures 'static' and 'templates' folders exist.
+    Checks for:
+    - style.css
+    - script.js
+    - index.html
+
+    Prints success/warnings for missing resources (great for debugging frontend issues).
+    """
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    static_dir = os.path.join(base_dir, 'static')
+    templates_dir = os.path.join(base_dir, 'templates')
+
+    # Create folders if missing
+    os.makedirs(static_dir, exist_ok=True)
+    os.makedirs(templates_dir, exist_ok=True)
+
+    # Check for CSS file
+    css_path = os.path.join(static_dir, 'style.css')
+    if os.path.exists(css_path):
+        print(f"✅ Found CSS file at {css_path}")
+    else:
+        print(f"❌ Warning: CSS file not found at {css_path}")
+
+    # Check for JS file
+    js_path = os.path.join(static_dir, 'script.js')
+    if os.path.exists(js_path):
+        print(f"✅ Found JS file at {js_path}")
+    else:
+        print(f"❌ Warning: JS file not found at {js_path}")
+
+    # Check for HTML file
+    html_path = os.path.join(templates_dir, 'index.html')
+    if os.path.exists(html_path):
+        print(f"✅ Found HTML template at {html_path}")
+    else:
+        print(f"❌ Warning: HTML template not found at {html_path}")
+
+    # List files in each folder (helps during debug/deployment)
+    if os.path.exists(static_dir):
+        static_files = [f for f in os.listdir(static_dir) if os.path.isfile(os.path.join(static_dir, f))]
+        if static_files:
+            print(f"📂 Static files found: {', '.join(static_files)}")
+        else:
+            print("📂 Static directory exists but is empty")
+
+    if os.path.exists(templates_dir):
+        template_files = [f for f in os.listdir(templates_dir) if os.path.isfile(os.path.join(templates_dir, f))]
+        if template_files:
+            print(f"📂 Template files found: {', '.join(template_files)}")
+        else:
+            print("📂 Templates directory exists but is empty")
+
+
+# --- Configuration Dialog ---
+def get_api_configuration():
+    """
+    Asks the user for the Gesture API server URL using a simple Tkinter input box.
+    Defaults to localhost if user closes or skips.
+    """
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+
+    try:
+        api_url = simpledialog.askstring(
+            "Gesture API Configuration",
+            "Enter the Hand Gesture API server URL:",
+            initialvalue="http://localhost:5000"
+        )
+
+        if not api_url:
+            api_url = "http://localhost:5000"
+
+        root.destroy()
+
+        return {'api_url': api_url}
+
+    except Exception as e:
+        print(f"Error in configuration dialog: {e}")
+        root.destroy()
+        return {'api_url': "http://localhost:5000"}
+
+
+# --- Gesture Control Loop ---
+def gesture_control_loop():
+    """
+    Runs in a separate thread.
+    - Polls the API every few seconds.
+    - Reads gestures.
+    - Triggers story progression based on gesture type.
+
+    Each gesture can trigger one of the current options or reset the story.
+    It includes gesture cooldowns to avoid accidental double triggers.
+    """
+    global api_client, story
+    global last_thumbs_up_time, last_thumbs_down_time, last_detected_gesture
+    global last_peace_sign_time, last_index_up_time
+    global last_processed_gesture_id
+
+    print("🎮 Gesture control loop started")
+
+    while True:
+        if api_client and api_client.is_connected:
+            try:
+                gesture_data = api_client.get_latest_gesture()
+                print(f"🔍 Gesture received: {gesture_data}")
+
+                if gesture_data and 'gesture' in gesture_data:
+                    gesture_id = gesture_data.get('id')
+                    # Avoid re-processing the same gesture
+                    if gesture_id != last_processed_gesture_id:
+                        last_processed_gesture_id = gesture_id
+                        gesture = gesture_data['gesture'].strip().lower().replace(" ", "_")
+                        now = time.time()
+
+                        current_passage = story.get_passage_info()
+                        options = current_passage.get("options", [])
+
+                        print(f"📖 Current options: {options}")
+                        print(f"👉 Comparing gesture: '{gesture}' == 'thumbs_up'")
+
+                        # Gesture: 👍 → Select first option
+                        if gesture == "thumbs_up" and now - last_thumbs_up_time > GESTURE_COOLDOWN:
+                            last_thumbs_up_time = now
+                            last_detected_gesture = "👍 Thumbs up"
+                            if options:
+                                print(f"👍 Selecting first option: {options[0]['text']}")
+                                try:
+                                    story.choose_option(options[0]["destination"])
+                                except Exception as e:
+                                    print(f"❌ Error choosing first option: {e}")
+                            else:
+                                print("⚠️ No options available for thumbs up")
+
+                        # Gesture: 👎 → Select second option
+                        elif gesture == "thumbs_down" and now - last_thumbs_down_time > GESTURE_COOLDOWN:
+                            last_thumbs_down_time = now
+                            last_detected_gesture = "👎 Thumbs down"
+                            if len(options) > 1:
+                                print(f"👎 Selecting second option: {options[1]['text']}")
+                                try:
+                                    story.choose_option(options[1]["destination"])
+                                except Exception as e:
+                                    print(f"❌ Error choosing second option: {e}")
+                            else:
+                                print("⚠️ Not enough options for thumbs down")
+
+                        # Gesture: ✌️ → Select third option
+                        elif gesture == "peace" and now - last_peace_sign_time > GESTURE_COOLDOWN:
+                            last_peace_sign_time = now
+                            last_detected_gesture = "✌️ Peace sign"
+                            if len(options) > 2:
+                                print(f"✌️ Selecting third option: {options[2]['text']}")
+                                try:
+                                    story.choose_option(options[2]["destination"])
+                                except Exception as e:
+                                    print(f"❌ Error choosing third option: {e}")
+                            else:
+                                print("⚠️ Not enough options for peace sign")
+
+                        # Gesture: ☝️ → Reset story to Start
+                        elif gesture == "index_up" and now - last_index_up_time > GESTURE_COOLDOWN:
+                            last_index_up_time = now
+                            last_detected_gesture = "☝️ Index finger up"
+                            print("☝️ Returning to Start passage")
+                            try:
+                                story.choose_option("Start")
+                            except Exception as e:
+                                print(f"❌ Error returning to Start: {e}")
+
+            except Exception as e:
+                print(f"❌ Error in gesture control loop: {e}")
+
+        time.sleep(POLLING_INTERVAL)
+
+
+# --- Launch Function ---
+def launch_application():
+    """
+    Main launcher for the entire app:
+    - Sets up static folders
+    - Prompts for API config
+    - Initializes API client
+    - Starts Flask server in background thread
+    - Starts gesture control loop in background thread
+    - Opens browser to local web app
+    - Keeps main thread alive forever
+    """
+    global api_client
+
+    # Step 1: Make sure necessary folders/files exist
+    setup_static_dirs()
+
+    # Step 2: Ask user for gesture API server address
+    config = get_api_configuration()
+
+    # Step 3: Initialize the API client with default or user-provided URL
+    api_client = GestureApiClient(base_url=API_BASE_URL)
+
+    print(f"🚀 Starting Hand Gesture Control Application:")
+    print(f"   - API URL: {config['api_url']}")
+    print(f"   - Mode: Hand Gestures Only")
+    print(f"   - API Connected: {api_client.is_connected}")
+
+    # Connection status report
+    if not api_client.is_connected:
+        print(f"   - Connection Error: {api_client.connection_error}")
+        print("   - The application will still start, but gesture control won't work")
+    else:
+        print("   - Gesture Controls:")
+        print("     • 👍 Thumbs Up: Select first option")
+        print("     • 👎 Thumbs Down: Select second option")
+        print("     • ✌️ Peace Sign: Select third option")
+        print("     • ☝️ Index Up: Return to start")
+
+    # Step 4: Start Flask server in the background
+    flask_thread = threading.Thread(
+        target=lambda: app.run(host='127.0.0.1', port=8080, debug=False, use_reloader=False),
+        daemon=True
+    )
+    flask_thread.start()
+
+    # Step 5: Start the gesture polling loop
+    gesture_thread = threading.Thread(target=gesture_control_loop, daemon=True)
+    gesture_thread.start()
+
+    # Step 6: Give Flask a second or two to spin up
+    time.sleep(2)
+
+    # Step 7: Try to open the app in the browser
+    try:
+        webbrowser.open('http://127.0.0.1:8080')
+        print("🌐 Opening browser at http://127.0.0.1:8080")
+    except Exception as e:
+        print(f"Could not open browser automatically: {e}")
+        print("Please open http://127.0.0.1:8080 in your browser manually")
+
+    # Step 8: Keep main thread alive forever (unless Ctrl+C)
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n👋 Shutting down application...")
+
+
+# --- Entry Point ---
+if __name__ == "__main__":
+    launch_application()
+
+
+
