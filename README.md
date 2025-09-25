@@ -36,7 +36,9 @@ Both versions follow an **event-driven logic**, where each detected gesture or e
 - Requests
 - Tkinter (for small GUI setup window)
 
+https://opencv.org/
 
+https://pypi.org/project/mediapipe/
 
 ## How to Run
 
