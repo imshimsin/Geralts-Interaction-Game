@@ -12,6 +12,8 @@ Two main game versions are included:
 
 Both versions follow an **event-driven logic**, where each detected gesture or emotion is treated as an event that drives the story forward.
 
+This particular version works only to both Lunix and Raspberry Pi OS. If you like to see the Windows version, you can visit it here.
+
 ## Features
 - Real-time **hand gesture recognition** using Mediapipe and OpenCV.
 - Real-time **facial emotion recognition** using FER.
@@ -34,4 +36,23 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install libatlas-base-dev
 ```
 
-asdasd 
+## How to Run the Hand Gesture Recognition Game
+ 
+1. Run the gesture recognition API and camera handler:
+```bash
+python run_both.py
+```
+2. Start the Game Application:
+```bash
+python witcher_story_app_hands.py
+```
+3. When prompted, enter the API address shown by run_both.py.
+
+
+## How to run the Emotion Capture Game
+
+1. Run the emotion-based game directly:
+```bash
+python Witcher_emotion_game.py
+```
+2. A window will display the API address where the emotion API is running.
