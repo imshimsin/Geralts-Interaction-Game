@@ -2,7 +2,7 @@
 
 ## Overview
 *A Witcher's Story* is an interactive storytelling game inspired by **The Witcher** universe. Unlike traditional games controlled by mouse or keyboard, this project allows the player to shape the narrative using **hand gestures** and **facial expressions**.  
-The story is written in `.twee` format and dynamically adapts to the player's actions, creating a unique narrative experience each time.
+The story is written in `.twee` format and dynamically adapts to the player's actions, creating a unique narrative experience each time. This version works only on Windows. I will add soon support for Lunix and Raspberry pi machines.
 
 Two main game versions are included:
 - **Hand Gesture Game**: Controlled by recognized gestures (thumbs up, thumbs down, peace, index finger).
@@ -29,6 +29,35 @@ Both versions follow an **event-driven logic**, where each detected gesture or e
 
 
 ## How to Run
+
+In order for the game to run property, you have to make a virtual environment in each of the folders containing the python algorithms
+
+### Running with myenv Virtual Environment
+
+
+1. Navigate to your project folder:
+```bash
+cd ~/Desktop/Witcher_Game
+```
+
+2. Create the virtual environment:
+```bash
+python3 -m venv myenv
+```
+
+3. Activate it:
+```bash
+myenv\Scripts\activate
+```
+4. Download all the necessary librarys
+```bash
+pip install pip install flask opencv-python mediapipe fer requests pillow
+```
+Or
+```bash
+pip install -r requirements.txt
+```
+When you downloaded all the necessary librarys, then type "deactivate" on the terminal to exit the Virtual Enviroment.
 
 ### Gesture Game
 1. Run the gesture recognition API and camera handler:
