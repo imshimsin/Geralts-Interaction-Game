@@ -24,7 +24,8 @@ Also the `emotion_detection.py` in the FACE folder provides the same things but 
 In order to match this, i made a different script called `run_both.py` that allows the `gesture_recognition_with_api.py` and `new_api.py` to run at the same time, so that the user would not have to run every single time the two different scripts.
 
 
-<img width="2513" height="1291" alt="image" src="https://github.com/user-attachments/assets/37b31218-bc37-4a1c-9d71-ca40d8108091" />
+<img width="2507" height="1288" alt="image" src="https://github.com/user-attachments/assets/c2148f2b-ee76-4845-a2c4-983c5008553a" />
+
 
 
 
