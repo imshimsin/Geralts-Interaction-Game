@@ -73,7 +73,7 @@ myenv\Scripts\activate
 ```
 4. Download all the necessary librarys
 ```bash
-pip install pip install flask opencv-python mediapipe fer requests pillow
+pip install flask opencv-python mediapipe fer requests pillow
 ```
    Or 
 ```bash
@@ -90,14 +90,14 @@ When you downloaded all the necessary librarys, then type "deactivate" on the te
    ```bash
    python witcher_story_app_hands.py
    ```
-3. When prompted, enter the API address shown by `run_both.py`.
+3. When prompted, enter the API address shown by `run_both.py`. Running on http://127.0.X.XXX:5000 OR http://192.168.X.XXX:5000
 
 ### Emotion Game
 1. Run the emotion-based game directly:
    ```bash
    python Witcher_emotion_game.py
    ```
-2. A window will display the API address where the emotion API is running.
+2. A  Pop-Up window will appear and display the API address in which the emotion API is currently running.
 
 ## Project Structure
 ```
