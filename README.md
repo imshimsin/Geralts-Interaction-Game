@@ -16,8 +16,16 @@ Two main game versions are included:
 - **Emotion Game**: Controlled by facial expressions (happiness, sadness, surprise, etc.).
 
 Both versions follow an **event-driven logic**, where each detected gesture or emotion is treated as an event that drives the story forward.
+## Disclaimer 
+The two algorithms that captures Face Emotions and Hand Gestures are made by two of my friends and fellow students. More specifically, the `gesture_recognition_with_api.py` and `new_api.py` that exist in the XERIA folder are the two scrips that captures the hand gestures and simultaneously uploads the records to the API. 
 
-<img width="940" height="468" alt="image" src="https://github.com/user-attachments/assets/dccffb44-d9e5-4564-a13e-d603329be04a" />
+Also the `emotion_detection.py` in the FACE folder provides the same things but with the Face emotions. The difference with that is the API and the detection scripts are bind together in a single app, rather that the Hand Gesture app that's in a two separate scripts. 
+
+In order to match this, i made a different script called `run_both.py` that allows the `gesture_recognition_with_api.py` and `new_api.py` to run at the same time, so that the user would not have to run every single time the two different scripts.
+
+
+<img width="2513" height="1291" alt="image" src="https://github.com/user-attachments/assets/37b31218-bc37-4a1c-9d71-ca40d8108091" />
+
 
 
 ## Features
@@ -42,7 +50,9 @@ https://pypi.org/project/mediapipe/
 
 ## How to Run
 
-In order for the game to run property, you have to make a virtual environment in each of the folders containing the python algorithms
+In order for the game to run property, you have to make a virtual environment in each of the folders containing the python algorithms. 
+
+You can import all the game files to a IDE (for example Pycharm) and work from there.
 
 ### Running with myenv Virtual Environment
 
@@ -65,7 +75,7 @@ myenv\Scripts\activate
 ```bash
 pip install pip install flask opencv-python mediapipe fer requests pillow
 ```
-Or
+   Or 
 ```bash
 pip install -r requirements.txt
 ```
